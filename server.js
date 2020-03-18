@@ -6,6 +6,7 @@ const myconn = require("./connection");
 
 // every single collection will need a model
 const Writer = require("./models/writers-model");
+const Books = require("./models/books-model");
 
 // init express, bodyparser now built in to express...
 const app = express();
@@ -35,6 +36,24 @@ db.on("error", () => console.log("Database error"));
 const router = express.Router();
 app.use("/api", router);
 
+// CREATE
+router.post("/writers", (req, res) => {
+  var newwriter = new Writer();
+
+  var data = req.body;
+  console.log(">>> ", data);
+  Object.assign(newwriter, data);
+
+  newwriter.save().then(
+    result => {
+      return res.json(result);
+    },
+    () => {
+      return res.send("problem adding new user");
+    }
+  );
+});
+
 // READ
 router.get("/writers", (req, res) => {
   // .sort({ age: "descending" })
@@ -43,6 +62,30 @@ router.get("/writers", (req, res) => {
     .then(writers => {
       res.json(writers);
     });
+});
+
+router.get("/books/:id", (req, res) => {
+  Books.findOne({ _id: req.params.id }, function(err, objFromDB) {
+    res.send(objFromDB);
+  });
+});
+
+// create a new book
+router.post("/books", (req, res) => {
+  var newbook = new Books();
+
+  var data = req.body;
+  console.log(">>> ", data);
+  Object.assign(newbook, data);
+
+  newbook.save().then(
+    result => {
+      return res.json(result);
+    },
+    () => {
+      return res.send("problem adding new book");
+    }
+  );
 });
 
 // deal with any unhandled urls on the api endpoint - place at end

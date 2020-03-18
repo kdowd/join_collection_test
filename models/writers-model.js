@@ -9,7 +9,7 @@ var WriterSchema = new Schema(
     first_name: String,
     last_name: String,
     DOB: String,
-    id: Number
+    id: { type: Number, default: Date.now() }
   },
   {
     timestamps: true,
@@ -22,7 +22,7 @@ WriterSchema.virtual("books", {
   localField: "id",
   foreignField: "author_id",
   justOne: false,
-  options: { sort: { pages: -1 } }
+  options: { sort: { title: 1 } }
 });
 
 // singular capitalized name for the mongo collection
