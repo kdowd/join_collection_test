@@ -65,8 +65,11 @@ router.get("/writers", (req, res) => {
 });
 
 router.get("/books/:id", (req, res) => {
+  // this will return a single object not an array as we are used to
+  // the client/app uses the map function which only works on array so lets force the array
+  // by wrapping the response in an array
   Books.findOne({ _id: req.params.id }, function(err, objFromDB) {
-    res.send(objFromDB);
+    res.json([objFromDB]);
   });
 });
 
