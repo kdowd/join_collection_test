@@ -104,7 +104,7 @@ router.delete("/writers/:id", (req, res) => {
 });
 
 // CREATE NEW BOOK WITH OTIONAL IMAGE UPLOAD
-// image would be avalable at http://localhost:4000/myimage.jpg
+// image would be available at http://localhost:4000/myimage.jpg
 router.post("/books", (req, res) => {
   var collectionModel = new Books();
 
@@ -165,6 +165,143 @@ router.post("/comments", (req, res) => {
     }
   );
 });
+
+//////////////////////////////////////////////////////////////////////
+/// CRUD FOR THE USERS collection Routes we did in class
+
+// for normal form , no images
+router.post("/users", (req, res) => {
+  var userModel = new User();
+
+  var data = req.body;
+  Object.assign(userModel, data);
+
+  userModel.save().then(
+    user => {
+      res.json({ result: true });
+    },
+    () => {
+      res.json({ result: false });
+    }
+  );
+});
+
+// for form , with one optional image max
+router.post("/users/form-with-image", (req, res) => {
+  var userModel = new User();
+
+  if (req.files) {
+    var files = Object.values(req.files);
+    var uploadedFileObject = files[0];
+    var uploadedFileName = uploadedFileObject.name;
+    var nowTime = Date.now();
+    var newFileName = `${nowTime}_${uploadedFileName}`;
+
+    uploadedFileObject.mv(`public/${newFileName}`).then(
+      params => {
+        updateAfterFileUpload(req, res, userModel, newFileName);
+      },
+      params => {
+        updateAfterFileUpload(req, res, userModel);
+      }
+    );
+  } else {
+    updateAfterFileUpload(req, res, userModel);
+  }
+});
+
+// READ
+router.get("/users", (req, res) => {
+  // .sort({ age: "descending" })
+  User.find().then(
+    usersFromDataBase => {
+      res.json(usersFromDataBase);
+    },
+    () => {
+      res.json({ result: false });
+    }
+  );
+});
+
+// find and return a single user based upon _id
+router.get("/users/:id", (req, res) => {
+  User.findOne({ _id: req.params.id }, function(err, objFromDB) {
+    //exit now if any kind of error
+    if (err) return res.json({ result: false });
+    res.send(objFromDB);
+  });
+});
+
+//UPDATE
+// update for users with no form image
+router.put("/users/:id", (req, res) => {
+  User.findOne({ _id: req.params.id }, function(err, objFromDB) {
+    if (err)
+      return res.json({
+        result: false
+      });
+    var data = req.body;
+    Object.assign(objFromDB, data);
+    objFromDB.save().then(
+      response => {
+        res.json({
+          result: true
+        });
+      },
+      error => {
+        res.json({
+          result: false
+        });
+      }
+    );
+  });
+});
+
+// update for users with form image
+router.put("/users/with-form-image/:id", (req, res) => {
+  User.findOne({ _id: req.params.id }, function(err, objFromDB) {
+    if (err)
+      return res.json({
+        result: false
+      });
+
+    if (req.files) {
+      var files = Object.values(req.files);
+      var uploadedFileObject = files[0];
+      var uploadedFileName = uploadedFileObject.name;
+      var nowTime = Date.now();
+      var newFileName = `${nowTime}_${uploadedFileName}`;
+
+      uploadedFileObject.mv(`public/${newFileName}`).then(
+        params => {
+          updateAfterFileUpload(req, res, objFromDB, newFileName);
+        },
+        params => {
+          updateAfterFileUpload(req, res, objFromDB);
+        }
+      );
+    } else {
+      updateAfterFileUpload(req, res, objFromDB);
+    }
+
+    /////////
+  });
+});
+
+// DELETE
+router.delete("/users/:id", (req, res) => {
+  // as a promise
+  User.deleteOne({ _id: req.params.id }).then(
+    () => {
+      res.json({ result: true });
+    },
+    () => {
+      res.json({ result: false });
+    }
+  );
+});
+//// END CRUD FOR USERS COLLECTION
+///////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////
 // THE rest of this is dealing with unhandled routes in a nice way //
